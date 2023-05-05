@@ -4,7 +4,7 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 
-# Hello error9098x, let's define the CNN architecture for the ISIC 2019 dataset
+#let's define the CNN architecture for the ISIC 2019 dataset
 class ISIC_CNN(nn.Module):
     def __init__(self):
         super(ISIC_CNN, self).__init__()
