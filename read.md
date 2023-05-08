@@ -4,4 +4,15 @@
 # VGG16
 # CNN
 # Pytorch Framework
+# Lenet
+# MLP (multi layer)
+# Auto Encoder
+# Stacked AE
+# Sparsh & Denoiseing AE
+# CNN AE
+# ALEXNET
+# VGGNET
+# GOOGLENET
+# RESNET
+# DENSENET
 
