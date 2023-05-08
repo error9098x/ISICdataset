@@ -1,0 +1,81 @@
+import warnings
+warnings.filterwarnings('ignore')
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+import tensorflow as tf
+from tensorflow import keras
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Flatten, Conv2D, MaxPool2D, Dropout, BatchNormalization
+from tensorflow.keras.optimizers import RMSprop
+from tensorflow.keras.preprocessing import image
+from tqdm import tqdm
+data = pd.read_csv('/kaggle/input/isicgt25k/ISIC_2019_Training_GroundTruth.csv')
+data.head()
+store_list = []
+image_height = 350
+image_width = 350
+for i in tqdm(range(data.shape[0])):
+    path = '/kaggle/input/isic2019/ISIC_2019_Training_Input/' + data['image'][i] + '.jpg'
+    image_check = image.load_img(path, target_size=(image_height, image_width))
+    image_check = image.img_to_array(image_check)
+    # scaling the images
+    image_check = image_check/255
+    store_list.append(image_check)
+x = np.array(store_list)
+y = data.drop(columns=['image'])
+Y = y.to_numpy()
+x_train, x_test, y_train, y_test = train_test_split(x, Y, random_state=42, test_size=0.20)
+# Define the model architecture
+model = Sequential()
+model.add(Conv2D(16, (3, 3), activation='relu', input_shape=x_train[0].shape))
+model.add(BatchNormalization())
+model.add(MaxPool2D(2,2))
+model.add(Dropout(0.3))
+model.add(Conv2D(32, (3, 3), activation='relu'))
+model.add(BatchNormalization())
+model.add(MaxPool2D(2,2))
+model.add(Dropout(0.3))
+model.add(Conv2D(64, (3, 3), activation='relu'))
+model.add(BatchNormalization())
+model.add(MaxPool2D(2,2))
+model.add(Dropout(0.4))
+model.add(Conv2D(128, (3, 3), activation='relu'))
+model.add(BatchNormalization())
+model.add(MaxPool2D(2, 2))
+model.add(Dropout(0.5))
+model.add(Flatten())
+model.add(Dense(64, activation='relu'))
+model.add(BatchNormalization())
+model.add(Dropout(0.3))
+model.add(Dense(128, activation='relu'))
+model.add(BatchNormalization())
+model.add(Dropout(0.3))
+model.add(Dense(9, activation='sigmoid'))
+model.summary()
+model.compile(optimizer=RMSprop(lr=0.0001), loss='binary_crossentropy', metrics=['accuracy'])
+
+# Train the model
+es_callback = keras.callbacks.EarlyStopping(patience=3)
+history = model.fit(x_train, y_train, epochs=15, validation_split=0.3, callbacks=[es_callback])
+
+score = model.evaluate(x_test, y_test, verbose=0)
+print('Test loss:', score[0])
+print('Test accuracy:', score[1])
+
+# Make predictions on the test set
+y_pred = model.predict(x_test)
+
+# Print the actual and predicted data side by side
+for i in range(len(y_test)):
+    print('Actual:', y_test[i], 'Predicted:', y_pred[i])
+
+# Plot the accuracy and loss graphs
+plt.plot(history.history['accuracy'], label='Training Accuracy')
+plt.plot(history.history['val_accuracy'], label='Validation Accuracy')
+plt.plot(history.history['loss'], label='Training Loss')
+plt.plot(history.history['val_loss'], label='Validation Loss')
+plt.legend()
+plt.show()
